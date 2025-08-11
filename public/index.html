@@ -366,7 +366,7 @@ function createGLTFLoader(renderer) {
 
     window.checkPassword = async function () {
       const val = document.getElementById("passwordInput").value;
-      const res = await fetch("/check-password", {
+      const res = await fetch(""/api/check-password"", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: val }),
