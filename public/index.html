@@ -243,32 +243,6 @@
 
   <script src="https://unpkg.com/three@0.141.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://unpkg.com/three@0.141.0/examples/js/loaders/DRACOLoader.js"></script>
-<script>
-// Patch: ensure GLTFLoader can decode Draco/KTX2 if the model uses them
-function createGLTFLoader(renderer) {
-  const gltfLoader = new THREE.GLTFLoader();
-  try {
-    if (THREE.DRACOLoader) {
-      const dracoLoader = new THREE.DRACOLoader();
-      // Use official Google Draco hosted decoders (works on HTTPS/CDN)
-      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-      gltfLoader.setDRACOLoader(dracoLoader);
-    }
-  } catch (e) { console.warn("DRACO not available:", e); }
-  try {
-    if (THREE.KTX2Loader) {
-      const ktx2 = new THREE.KTX2Loader();
-      ktx2.setTranscoderPath('https://unpkg.com/three@0.141.0/examples/js/libs/basis/');
-      ktx2.detectSupport(renderer);
-      gltfLoader.setKTX2Loader(ktx2);
-    }
-  } catch (e) { console.warn("KTX2 not available:", e); }
-  return gltfLoader;
-}
-</script>
-
-    <script src="https://unpkg.com/three@0.141.0/examples/js/loaders/KTX2Loader.js"></script>
 
   <script>
     let scene, camera, renderer, mixer, currentAction;
@@ -366,7 +340,7 @@ function createGLTFLoader(renderer) {
 
     window.checkPassword = async function () {
       const val = document.getElementById("passwordInput").value;
-      const res = await fetch(""/api/check-password"", {
+      const res = await fetch("/api/check-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: val }),
