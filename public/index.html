@@ -279,22 +279,16 @@
       scene.add(rimLight);
 
 
-  const loader = new THREE.GLTFLoader();
-
-  function onLoad(gltf) {
+  new THREE.GLTFLoader().load(
+  "/JOEAI2.glb",
+  (gltf) => {
     const model = gltf.scene;
-
-    // scale + recenter to ground
     model.scale.set(0.4, 0.4, 0.4);
     const box = new THREE.Box3().setFromObject(model);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    model.position.sub(center);
-    model.position.y = -size.y / 2 + 1.35;
-
+    model.position.sub(box.getCenter(new THREE.Vector3()));
+    model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
     scene.add(model);
 
-    // animations
     mixer = new THREE.AnimationMixer(model);
     gltf.animations.forEach((clip) => {
       const action = mixer.clipAction(clip);
@@ -305,11 +299,11 @@
     loaderOverlay.classList.add("hidden");
     playAnimation("weight_shift");
     animate();
-  }
-
-  async function onError(err) {
+  },
+  undefined,
+  async (err) => {
     console.error("GLB load error", err);
-    // quick sanity check: make sure Vercel is serving a real binary
+    // sanity check: is Vercel serving a real binary?
     try {
       const r = await fetch("/JOEAI2.glb", { method: "HEAD" });
       console.log("GLB status", r.status, r.headers.get("content-type"));
@@ -317,24 +311,8 @@
       console.warn("GLB status check failed", e);
     }
   }
+);
 
-  loader.load("/JOEAI2.glb", onLoad, undefined, onError);
-
-    function playAnimation(name) {
-      if (!actions[name]) return;
-      const next = actions[name];
-      if (currentAction === next) return;
-      next.reset().fadeIn(0.4).play();
-      if (currentAction) currentAction.crossFadeTo(next, 0.4, false);
-      currentAction = next;
-    }
-
-    function animate() {
-      requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      if (mixer) mixer.update(delta);
-      renderer.render(scene, camera);
-    }
 
     initAvatar();
 
