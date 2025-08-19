@@ -220,7 +220,7 @@
     function initAvatar() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(45, avatarCanvas.clientWidth / avatarCanvas.clientHeight, 0.1, 100);
-      camera.position.set(0, 1.35, 0.2);
+      camera.position.set(0, 1.35, 0);
 
       renderer = new THREE.WebGLRenderer({ canvas: avatarCanvas, alpha: true, antialias: true });
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
@@ -250,7 +250,7 @@
           model.scale.set(4, 4, 4);
           const box = new THREE.Box3().setFromObject(model);
           model.position.sub(box.getCenter(new THREE.Vector3()));
-          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
+          model.position.y = -box.getSize(new THREE.Vector3()).y / 1 + 1.35;
           scene.add(model);
 
           mixer = new THREE.AnimationMixer(model);
