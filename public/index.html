@@ -220,7 +220,7 @@
     function initAvatar() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(45, avatarCanvas.clientWidth / avatarCanvas.clientHeight, 0.1, 100);
-      camera.position.set(0, 1.35, 0.6);
+      camera.position.set(0, 1.35, 0.2);
 
       renderer = new THREE.WebGLRenderer({ canvas: avatarCanvas, alpha: true, antialias: true });
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
