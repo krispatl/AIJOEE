@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
-
     body {
       background: radial-gradient(circle at 50% 50%, #0f111a 0%, #080a12 100%);
       color: #e0e0e0;
@@ -17,7 +16,6 @@
       margin: 0;
       overflow: hidden;
     }
-
     #loginPopup {
       position: fixed;
       inset: 0;
@@ -28,7 +26,6 @@
       align-items: center;
       z-index: 9999;
     }
-
     .login-box {
       background: rgba(255, 255, 255, 0.04);
       padding: 24px;
@@ -38,7 +35,6 @@
       width: 90%;
       max-width: 320px;
     }
-
     .login-box input,
     .login-box button {
       width: 100%;
@@ -49,7 +45,6 @@
       background: rgba(255, 255, 255, 0.05);
       color: #e0e0e0;
     }
-
     .login-box button {
       background: #00f0ff;
       color: #0f111a;
@@ -57,7 +52,6 @@
       border: none;
       cursor: pointer;
     }
-
     .main-interface {
       display: grid;
       grid-template-columns: 1fr 2fr;
@@ -66,11 +60,7 @@
       width: 100vw;
       transition: all 0.3s ease;
     }
-
-    .main-interface.avatar-off {
-      grid-template-columns: 1fr;
-    }
-
+    .main-interface.avatar-off { grid-template-columns: 1fr; }
     .top-bar {
       grid-column: 1 / -1;
       display: flex;
@@ -82,7 +72,6 @@
       color: #00f0ff;
       font-weight: 600;
     }
-
     .top-bar button {
       padding: 10px 14px;
       background: #00f0ff;
@@ -92,7 +81,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
     .center-panel {
       padding: 16px;
       background: rgba(255, 255, 255, 0.02);
@@ -102,19 +90,16 @@
       height: 100%;
       min-height: 0;
     }
-
     .main-interface.avatar-off .center-panel {
       margin: 0 auto;
       border-right: none;
     }
-
     #avatarCanvas {
       width: 100%;
       height: 100%;
       background: rgba(255, 255, 255, 0.01);
       display: block;
     }
-
     #avatarLoader {
       position: absolute;
       inset: 0;
@@ -124,11 +109,7 @@
       background: rgba(0, 0, 0, 0.25);
       z-index: 10;
     }
-
-    #avatarLoader.hidden {
-      display: none;
-    }
-
+    #avatarLoader.hidden { display: none; }
     .spinner {
       border: 4px solid rgba(255, 255, 255, 0.2);
       border-top: 4px solid #00f0ff;
@@ -137,12 +118,7 @@
       height: 32px;
       animation: spin 1s linear infinite;
     }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #scrolling-text {
       font-family: 'Fira Code', monospace;
       flex: 1;
@@ -153,30 +129,17 @@
       border-radius: 12px;
       border: 1px solid rgba(0, 240, 255, 0.1);
     }
-
-    .terminal-output p {
-      margin: 6px 0;
-      font-size: 0.9em;
-    }
-
-    .terminal {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
+    .terminal-output p { margin: 6px 0; font-size: 0.9em; }
+    .terminal { display: flex; gap: 8px; flex-wrap: wrap; }
     #messageInput {
-      flex: 1;
-      min-width: 180px;
+      flex: 1; min-width: 180px;
       padding: 10px;
       border-radius: 8px;
       border: 1px solid rgba(0, 240, 255, 0.3);
       background: rgba(255, 255, 255, 0.05);
       color: #e0e0e0;
     }
-
-    #sendMessage,
-    #talkButton {
+    #sendMessage, #talkButton {
       padding: 10px 14px;
       background: #00f0ff;
       color: #0f111a;
@@ -185,20 +148,9 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
-    #systemReady {
-      animation: pulse 2s infinite alternate;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      100% { opacity: 0.5; }
-    }
-
-    #scrolling-text::-webkit-scrollbar {
-      width: 6px;
-    }
-
+    #systemReady { animation: pulse 2s infinite alternate; }
+    @keyframes pulse { 0% { opacity: 1; } 100% { opacity: 0.5; } }
+    #scrolling-text::-webkit-scrollbar { width: 6px; }
     #scrolling-text::-webkit-scrollbar-thumb {
       background: rgba(0, 240, 255, 0.2);
       border-radius: 4px;
@@ -251,6 +203,20 @@
     const avatarCanvas = document.getElementById("avatarCanvas");
     const loaderOverlay = document.getElementById("avatarLoader");
 
+    function playAnimation(name) {
+      if (!actions[name]) return;
+      if (currentAction) currentAction.fadeOut(0.3);
+      currentAction = actions[name];
+      currentAction.reset().fadeIn(0.3).play();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (mixer) mixer.update(delta);
+      renderer.render(scene, camera);
+    }
+
     function initAvatar() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(45, avatarCanvas.clientWidth / avatarCanvas.clientHeight, 0.1, 100);
@@ -267,7 +233,6 @@
       const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
       keyLight.position.set(-5, 10, -5);
       keyLight.castShadow = true;
-      keyLight.shadow.mapSize.set(2048, 2048);
       scene.add(keyLight);
 
       const fillLight = new THREE.PointLight(0x99ccff, 1.7, 10);
@@ -278,41 +243,31 @@
       rimLight.position.set(5, 4, 4);
       scene.add(rimLight);
 
+      new THREE.GLTFLoader().load(
+        "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joe2.glb",
+        (gltf) => {
+          const model = gltf.scene;
+          model.scale.set(0.4, 0.4, 0.4);
+          const box = new THREE.Box3().setFromObject(model);
+          model.position.sub(box.getCenter(new THREE.Vector3()));
+          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
+          scene.add(model);
 
-  new THREE.GLTFLoader().load(
-  "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joe2.glb",
-  (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(0.4, 0.4, 0.4);
-    const box = new THREE.Box3().setFromObject(model);
-    model.position.sub(box.getCenter(new THREE.Vector3()));
-    model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
-    scene.add(model);
+          mixer = new THREE.AnimationMixer(model);
+          gltf.animations.forEach((clip) => {
+            const action = mixer.clipAction(clip);
+            action.loop = THREE.LoopRepeat;
+            actions[clip.name] = action;
+          });
 
-    mixer = new THREE.AnimationMixer(model);
-    gltf.animations.forEach((clip) => {
-      const action = mixer.clipAction(clip);
-      action.loop = THREE.LoopRepeat;
-      actions[clip.name] = action;
-    });
-
-    loaderOverlay.classList.add("hidden");
-    playAnimation("weight_shift");
-    animate();
-  },
-  undefined,
-  async (err) => {
-    console.error("GLB load error", err);
-    // sanity check: is Vercel serving a real binary?
-    try {
-      const r = await fetch("/JOEAI2.glb", { method: "HEAD" });
-      console.log("GLB status", r.status, r.headers.get("content-type"));
-    } catch (e) {
-      console.warn("GLB status check failed", e);
+          loaderOverlay.classList.add("hidden");
+          playAnimation("weight_shift");
+          animate();
+        },
+        undefined,
+        (err) => { console.error("GLB load error", err); }
+      );
     }
-  }
-);
-
 
     initAvatar();
 
