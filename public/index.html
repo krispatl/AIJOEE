@@ -220,7 +220,7 @@
     function initAvatar() {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(45, avatarCanvas.clientWidth / avatarCanvas.clientHeight, 0.1, 100);
-      camera.position.set(0, 1, 0.2);
+      camera.position.set(0, 1.35, 0.2);
 
       renderer = new THREE.WebGLRenderer({ canvas: avatarCanvas, alpha: true, antialias: true });
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
@@ -247,7 +247,7 @@
         "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joe2.glb",
         (gltf) => {
           const model = gltf.scene;
-          model.scale.set(1, 1, 1);
+          model.scale.set(4, 4, 4);
           const box = new THREE.Box3().setFromObject(model);
           model.position.sub(box.getCenter(new THREE.Vector3()));
           model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
