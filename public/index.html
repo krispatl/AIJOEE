@@ -247,7 +247,7 @@
         "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joe2.glb",
         (gltf) => {
           const model = gltf.scene;
-          model.scale.set(0.4, 0.4, 0.4);
+          model.scale.set(1, 1, 1);
           const box = new THREE.Box3().setFromObject(model);
           model.position.sub(box.getCenter(new THREE.Vector3()));
           model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
