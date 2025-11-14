@@ -13,13 +13,14 @@
   <style>
     * { box-sizing: border-box; }
     body {
-      background: radial-gradient(circle at 50% 50%, #0f111a 0%, #080a12 100%);
+      background: radial-gradient(circle at 50% 50%, #0f111a, #080a12);
       color: #e0e0e0;
       font-family: 'Inter', sans-serif;
       margin: 0;
       overflow: hidden;
     }
-    /* Login popup */
+
+    /* Login */
     #loginPopup {
       position: fixed;
       inset: 0;
@@ -31,10 +32,10 @@
       z-index: 9999;
     }
     .login-box {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255,255,255,0.04);
       padding: 24px;
       border-radius: 12px;
-      border: 1px solid rgba(0, 240, 255, 0.3);
+      border: 1px solid rgba(0,240,255,0.3);
       text-align: center;
       width: 90%;
       max-width: 320px;
@@ -45,8 +46,8 @@
       padding: 12px;
       margin-top: 12px;
       border-radius: 8px;
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0,240,255,0.3);
+      background: rgba(255,255,255,0.05);
       color: #e0e0e0;
     }
     .login-box button {
@@ -73,8 +74,8 @@
       justify-content: space-between;
       align-items: center;
       padding: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(0,240,255,0.2);
       color: #00f0ff;
       font-weight: 600;
     }
@@ -83,71 +84,39 @@
       background: #00f0ff;
       color: #0f111a;
       font-weight: 600;
-      border: none;
       border-radius: 8px;
+      border: none;
       cursor: pointer;
     }
 
     .center-panel {
       padding: 16px;
-      background: rgba(255, 255, 255, 0.02);
-      border-right: 1px solid rgba(0, 240, 255, 0.15);
+      background: rgba(255,255,255,0.02);
+      border-right: 1px solid rgba(0,240,255,0.15);
       display: flex;
       flex-direction: column;
       height: 100%;
       min-height: 0;
     }
     .main-interface.avatar-off .center-panel {
-      margin: 0 auto;
       border-right: none;
+      margin: 0 auto;
     }
-
-    /* Avatar canvas */
-    #avatarCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: rgba(255,255,255,0.01);
-    }
-    #avatarLoader {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(0,0,0,0.25);
-      z-index: 10;
-    }
-    #avatarLoader.hidden { display: none; }
-
-    .spinner {
-      border: 4px solid rgba(255,255,255,0.2);
-      border-top: 4px solid #00f0ff;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
 
     /* Terminal */
     #scrolling-text {
       font-family: 'Fira Code';
       flex: 1;
       overflow-y: auto;
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255,255,255,0.04);
       padding: 16px;
       margin-bottom: 12px;
       border-radius: 12px;
-      border: 1px solid rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0,240,255,0.1);
     }
     .terminal-output p { margin: 6px 0; font-size: 0.9em; }
 
-    .terminal {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .terminal { display: flex; gap: 8px; flex-wrap: wrap; }
 
     #messageInput {
       flex: 1;
@@ -164,9 +133,37 @@
       color: #0f111a;
       font-weight: 600;
       border-radius: 8px;
-      cursor: pointer;
       border: none;
+      cursor: pointer;
     }
+
+    /* Avatar Canvas */
+    #avatarCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: rgba(255,255,255,0.01);
+    }
+    #avatarLoader {
+      position: absolute;
+      inset: 0;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background: rgba(0,0,0,0.25);
+      z-index: 10;
+    }
+    #avatarLoader.hidden { display: none; }
+
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid #00f0ff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg) } }
   </style>
 </head>
 
@@ -183,50 +180,59 @@
 
 <div class="main-interface" id="mainInterface">
 
-  <!-- TOP BAR -->
   <div class="top-bar">
     <span class="title">AI JOE TERMINAL V3</span>
     <span class="status">STATUS: CONNECTED</span>
     <button id="toggleAvatarButton">Toggle Avatar</button>
   </div>
 
-  <!-- CHAT PANEL -->
+  <!-- TERMINAL -->
   <div class="center-panel">
     <div id="scrolling-text">
       <div class="terminal-output" id="conversationOutput">
         <p>Initializing AI JOE...</p>
-        <p id="systemReady">System Ready.</p>
+        <p>System Ready.</p>
       </div>
     </div>
 
     <div class="terminal">
-      <input type="text" id="messageInput" placeholder="Enter your message..." />
+      <input id="messageInput" type="text" placeholder="Enter your message..." />
       <button id="sendMessage">Send</button>
       <button id="talkButton">🎙️ Talk</button>
     </div>
   </div>
 
-  <!-- AVATAR PANEL -->
+  <!-- AVATAR -->
   <div style="position: relative;">
     <canvas id="avatarCanvas"></canvas>
     <div id="avatarLoader"><div class="spinner"></div></div>
   </div>
 </div>
 
-<!-- THREE.js (LATEST version fixing your GLB issues) -->
+<!-- THREE.js MUST LOAD FIRST -->
 <script src="https://unpkg.com/three@0.165.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.165.0/examples/js/loaders/GLTFLoader.js"></script>
 
+<!-- LOGIN FUNCTION (must load before HTML onclick) -->
 <script>
-/* ==========================================================
-   AVATAR + THREE.JS
-   ========================================================== */
+window.checkPassword = async function () {
+  const val = document.getElementById("passwordInput").value;
+  const res = await fetch("/api/check-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: val })
+  });
+  const data = await res.json();
+  if (data.success) document.getElementById("loginPopup").style.display = "none";
+  else alert("Incorrect password.");
+};
+</script>
 
+<!-- AVATAR + GLB LOADING -->
+<script>
 let scene, camera, renderer, mixer, currentAction;
-const actions = {};
+let actions = {};
 const clock = new THREE.Clock();
-const avatarCanvas = document.getElementById("avatarCanvas");
-const loaderOverlay = document.getElementById("avatarLoader");
 
 function playAnimation(name) {
   if (!actions[name]) return;
@@ -237,79 +243,39 @@ function playAnimation(name) {
 
 function animate() {
   requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  if (mixer) mixer.update(delta);
+  if (mixer) mixer.update(clock.getDelta());
   renderer.render(scene, camera);
 }
 
 function initAvatar() {
+  const canvas = document.getElementById("avatarCanvas");
+  const loaderOverlay = document.getElementById("avatarLoader");
+
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(
-    45,
-    avatarCanvas.clientWidth / avatarCanvas.clientHeight,
-    0.1,
-    100
-  );
+  camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
   camera.position.set(0, 1.35, 0.4);
 
-  renderer = new THREE.WebGLRenderer({
-    canvas: avatarCanvas,
-    alpha: true,
-    antialias: true
-  });
-
-  renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.shadowMap.enabled = true;
-
-  /* REQUIRED for Blender 4.x GLB compatibility */
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1;
-
-  // Lighting setup
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-  keyLight.position.set(-5, 10, -5);
-  scene.add(keyLight);
-
-  const fillLight = new THREE.PointLight(0x99ccff, 1.7, 10);
-  fillLight.position.set(3, 2, 5);
-  scene.add(fillLight);
-
-  const rimLight = new THREE.DirectionalLight(0xffeebb, 1);
-  rimLight.position.set(4, 4, 5);
-  scene.add(rimLight);
 
   new THREE.GLTFLoader().load(
     "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/JOEAI2.glb",
     (gltf) => {
       const model = gltf.scene;
-      model.scale.set(6, 6, 6);
+      model.scale.set(6,6,6);
 
-      // Recenter
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
       model.position.sub(center);
-      model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
 
       scene.add(model);
 
-      // Correct textures
-      model.traverse((obj) => {
-        if (obj.isMesh) {
-          if (obj.material.map) {
-            obj.material.map.colorSpace = THREE.SRGBColorSpace;
-          }
-        }
-      });
-
-      // Animations
       mixer = new THREE.AnimationMixer(model);
-      gltf.animations.forEach((clip) => {
-        const action = mixer.clipAction(clip);
-        action.loop = THREE.LoopRepeat;
-        actions[clip.name] = action;
+      gltf.animations.forEach(clip => {
+        actions[clip.name] = mixer.clipAction(clip);
       });
 
       loaderOverlay.classList.add("hidden");
@@ -317,41 +283,21 @@ function initAvatar() {
       animate();
     },
     undefined,
-    (err) => console.error("GLB Load Error:", err)
+    err => console.error("GLB Load Error", err)
   );
 }
 
 initAvatar();
 
-document.getElementById("toggleAvatarButton").addEventListener("click", () => {
-  const main = document.getElementById("mainInterface");
-  const hidden = avatarCanvas.style.display === "none";
-  avatarCanvas.style.display = hidden ? "block" : "none";
-  loaderOverlay.style.display = hidden ? "flex" : "none";
-  main.classList.toggle("avatar-off", !hidden);
-});
-
-window.addEventListener("resize", () => {
-  camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
-});
-
-/* LOGIN */
-window.checkPassword = async function () {
-  const val = document.getElementById("passwordInput").value;
-  const res = await fetch("/api/check-password", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: val }),
-  });
-  const data = await res.json();
-  if (data.success) document.getElementById("loginPopup").style.display = "none";
-  else alert("Incorrect password.");
+document.getElementById("toggleAvatarButton").onclick = function () {
+  const canvas = document.getElementById("avatarCanvas");
+  const hidden = canvas.style.display === "none";
+  canvas.style.display = hidden ? "block" : "none";
+  document.getElementById("mainInterface").classList.toggle("avatar-off", !hidden);
 };
 </script>
 
-<!-- CHAT / TTS / STT -->
+<!-- CHAT SYSTEM -->
 <script src="script.js"></script>
 
 </body>
