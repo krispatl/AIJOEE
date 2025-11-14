@@ -205,7 +205,7 @@
  <script src="https://unpkg.com/three@0.141.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
 
-  <!-- Avatar + UI init (uses THREE) -->TFLo
+  <!-- Avatar + UI init -->
   <script>
     let scene, camera, renderer, mixer, currentAction, clock;
     const actions = {};
@@ -229,18 +229,21 @@
     function initAvatar() {
       clock = new THREE.Clock();
       scene = new THREE.Scene();
+
       camera = new THREE.PerspectiveCamera(
         45,
         avatarCanvas.clientWidth / avatarCanvas.clientHeight,
         0.1,
         100
       );
-      camera.position.set(0, 1.35, 0.4);
+
+      // Slightly higher + closer = bigger Joe on screen
+      camera.position.set(0, 1.4, 0.4);
 
       renderer = new THREE.WebGLRenderer({
         canvas: avatarCanvas,
         alpha: true,
-        antialias: true
+        antialias: true,
       });
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
@@ -265,33 +268,67 @@
 
       const loader = new THREE.GLTFLoader();
       loader.load(
-        "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joesep.glb",
+        // 👇 your new working GLB URL
+        "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joe_clean.glb",
         (gltf) => {
           const model = gltf.scene;
-          model.scale.set(6, 6, 6);
+
+          // 🔥 Make Joe bigger here
+          model.scale.set(10, 10, 10);
+
+          // Center him in front of camera
           const box = new THREE.Box3().setFromObject(model);
           model.position.sub(box.getCenter(new THREE.Vector3()));
-          model.position.y = -box.getSize(new THREE.Vector3()).y / 1 + 1.35;
+          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 0.1;
           scene.add(model);
 
           mixer = new THREE.AnimationMixer(model);
-          gltf.animations.forEach((clip) => {
+
+          const clips = gltf.animations || [];
+          let firstAction = null;
+
+          clips.forEach((clip, idx) => {
+            const name = clip.name || `clip_${idx}`;
             const action = mixer.clipAction(clip);
             action.loop = THREE.LoopRepeat;
-            actions[clip.name] = action;
+            action.clampWhenFinished = false;
+            actions[name] = action;
+            if (!firstAction) firstAction = action;
           });
 
-          // expose for script.js
+          // Expose original API for later if you want
           window.playAnimation = playAnimation;
           window.avatarAnimations = Object.keys(actions);
 
-          loaderOverlay.classList.add("hidden");
-          if (actions["weight_shift"]) {
-            playAnimation("weight_shift");
-          } else {
-            const keys = Object.keys(actions);
-            if (keys.length) playAnimation(keys[0]);
+          // Pick a "talk" clip – if we only have one, use that
+          let talkingAction = null;
+          const talkName = Object.keys(actions).find((n) =>
+            n.toLowerCase().includes("talk")
+          );
+          if (talkName) {
+            talkingAction = actions[talkName];
+          } else if (firstAction) {
+            talkingAction = firstAction;
           }
+
+          // 👇 Public hooks for script.js (ElevenLabs audio)
+          window.startTalking = () => {
+            if (!talkingAction) return;
+            talkingAction.reset();
+            talkingAction.paused = false;
+            talkingAction.play();
+          };
+
+          window.stopTalking = () => {
+            if (!talkingAction) return;
+            talkingAction.stop();
+          };
+
+          loaderOverlay.classList.add("hidden");
+
+          // ❌ DO NOT autoplay animation here – we want idle until audio plays
+          // if you want a subtle idle later, we can add a separate idle clip
+
           animate();
         },
         undefined,
@@ -303,6 +340,12 @@
     }
 
     window.addEventListener("load", () => {
+      if (typeof THREE === "undefined") {
+        console.error("THREE did not load.");
+        loaderOverlay.classList.add("hidden");
+        return;
+      }
+
       try {
         initAvatar();
       } catch (e) {
@@ -310,23 +353,32 @@
         loaderOverlay.classList.add("hidden");
       }
 
-      document.getElementById("toggleAvatarButton").addEventListener("click", () => {
-        const main = document.getElementById("mainInterface");
-        const hidden = avatarCanvas.style.display === "none";
-        avatarCanvas.style.display = hidden ? "block" : "none";
-        loaderOverlay.style.display = hidden ? "flex" : "none";
-        main.classList.toggle("avatar-off", !hidden);
-      });
+      document
+        .getElementById("toggleAvatarButton")
+        .addEventListener("click", () => {
+          const main = document.getElementById("mainInterface");
+          const hidden = avatarCanvas.style.display === "none";
+          avatarCanvas.style.display = hidden ? "block" : "none";
+          loaderOverlay.style.display = hidden ? "flex" : "none";
+          main.classList.toggle("avatar-off", !hidden);
+        });
 
-      document.getElementById("messageInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") document.getElementById("sendMessage").click();
-      });
+      document
+        .getElementById("messageInput")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter")
+            document.getElementById("sendMessage").click();
+        });
 
       window.addEventListener("resize", () => {
         if (!camera || !renderer) return;
-        camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
+        camera.aspect =
+          avatarCanvas.clientWidth / avatarCanvas.clientHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
+        renderer.setSize(
+          avatarCanvas.clientWidth,
+          avatarCanvas.clientHeight
+        );
       });
 
       window.checkPassword = async function () {
@@ -344,7 +396,7 @@
     });
   </script>
 
-  <!-- Your main app logic (uses window.playAnimation etc.) -->
+  <!-- Your main app logic (chat, ElevenLabs, etc.) -->
   <script src="script.js"></script>
 </body>
 </html>
