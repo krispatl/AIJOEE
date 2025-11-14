@@ -200,14 +200,14 @@
     </div>
   </div>
 
-  <!-- AVATAR & PASSWORD SCRIPT (ONLY PART CHANGED) -->
-  <script type="module">
-    import * as THREE from "https://unpkg.com/three@0.165.0/build/three.module.js";
-    import { GLTFLoader } from "https://unpkg.com/three@0.165.0/examples/jsm/loaders/GLTFLoader.js";
+  <!-- your original Three.js script tags, unchanged -->
+  <script src="https://unpkg.com/three@0.141.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
 
-    let scene, camera, renderer, mixer, currentAction;
+  <!-- ONLY THIS SCRIPT BLOCK IS CHANGED -->
+  <script>
+    let scene, camera, renderer, mixer, currentAction, clock;
     const actions = {};
-    const clock = new THREE.Clock();
     const avatarCanvas = document.getElementById("avatarCanvas");
     const loaderOverlay = document.getElementById("avatarLoader");
 
@@ -226,6 +226,7 @@
     }
 
     function initAvatar() {
+      clock = new THREE.Clock();
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(
         45,
@@ -243,7 +244,6 @@
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.shadowMap.enabled = true;
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       scene.fog = new THREE.Fog(0x000000, 15, 30);
       renderer.setClearColor(0x000000, 0);
@@ -261,25 +261,14 @@
       rimLight.position.set(5, 4, 4);
       scene.add(rimLight);
 
-      const loader = new GLTFLoader();
-      loader.load(
+      new THREE.GLTFLoader().load(
         "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/JOEAI2.glb",
         (gltf) => {
           const model = gltf.scene;
           model.scale.set(6, 6, 6);
-
           const box = new THREE.Box3().setFromObject(model);
-          const center = box.getCenter(new THREE.Vector3());
-          model.position.sub(center);
-          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
-
-          model.traverse((obj) => {
-            if (obj.isMesh && obj.material && obj.material.map) {
-              obj.material.map.colorSpace = THREE.SRGBColorSpace;
-              obj.material.needsUpdate = true;
-            }
-          });
-
+          model.position.sub(box.getCenter(new THREE.Vector3()));
+          model.position.y = -box.getSize(new THREE.Vector3()).y / 1 + 1.35;
           scene.add(model);
 
           mixer = new THREE.AnimationMixer(model);
@@ -289,68 +278,68 @@
             actions[clip.name] = action;
           });
 
-          // expose for script.js (TTS animation)
+          // expose for script.js
           window.playAnimation = playAnimation;
           window.avatarAnimations = Object.keys(actions);
 
           loaderOverlay.classList.add("hidden");
-
-          const defaultClip =
-            actions["weight_shift"]
-              ? "weight_shift"
-              : Object.keys(actions)[0];
-
-          if (defaultClip) {
-            playAnimation(defaultClip);
+          if (actions["weight_shift"]) {
+            playAnimation("weight_shift");
+          } else {
+            const keys = Object.keys(actions);
+            if (keys.length) playAnimation(keys[0]);
           }
-
           animate();
         },
         undefined,
         (err) => {
           console.error("GLB load error", err);
-          loaderOverlay.classList.add("hidden");
         }
       );
     }
 
-    initAvatar();
+    // defer everything until after scripts & DOM are fully loaded
+    window.addEventListener("load", () => {
+      try {
+        initAvatar();
+      } catch (e) {
+        console.error("Avatar init error:", e);
+      }
 
-    document.getElementById("toggleAvatarButton").addEventListener("click", () => {
-      const main = document.getElementById("mainInterface");
-      const hidden = avatarCanvas.style.display === "none";
-      avatarCanvas.style.display = hidden ? "block" : "none";
-      loaderOverlay.style.display = hidden ? "flex" : "none";
-      main.classList.toggle("avatar-off", !hidden);
-    });
-
-    document.getElementById("messageInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter")
-        document.getElementById("sendMessage").click();
-    });
-
-    window.addEventListener("resize", () => {
-      camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
-    });
-
-    // keep your password logic, but make it global
-    window.checkPassword = async function () {
-      const val = document.getElementById("passwordInput").value;
-      const res = await fetch("/api/check-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: val }),
+      document.getElementById("toggleAvatarButton").addEventListener("click", () => {
+        const main = document.getElementById("mainInterface");
+        const hidden = avatarCanvas.style.display === "none";
+        avatarCanvas.style.display = hidden ? "block" : "none";
+        loaderOverlay.style.display = hidden ? "flex" : "none";
+        main.classList.toggle("avatar-off", !hidden);
       });
-      const data = await res.json();
-      if (data.success)
-        document.getElementById("loginPopup").style.display = "none";
-      else alert("Incorrect password.");
-    };
+
+      document.getElementById("messageInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("sendMessage").click();
+      });
+
+      window.addEventListener("resize", () => {
+        if (!camera || !renderer) return;
+        camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
+      });
+
+      window.checkPassword = async function () {
+        const val = document.getElementById("passwordInput").value;
+        const res = await fetch("/api/check-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: val }),
+        });
+        const data = await res.json();
+        if (data.success)
+          document.getElementById("loginPopup").style.display = "none";
+        else alert("Incorrect password.");
+      };
+    });
   </script>
 
-  <!-- your existing chat / TTS / STT logic -->
   <script src="script.js"></script>
 </body>
 </html>
