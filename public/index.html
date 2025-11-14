@@ -203,9 +203,11 @@
   </div>
 
   <!-- UPDATED three.js + GLTFLoader versions -->
+   <!-- Three.js core + GLTFLoader MUST come first -->
   <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.161.0/examples/js/loaders/GLTFLoader.js"></script>
 
+  <!-- Avatar + UI init (uses THREE) -->
   <script>
     let scene, camera, renderer, mixer, currentAction, clock;
     const actions = {};
@@ -344,6 +346,10 @@
     });
   </script>
 
+  <!-- Your main app logic (uses window.playAnimation etc.) -->
   <script src="script.js"></script>
+</body>
+</html>
+
 </body>
 </html>
