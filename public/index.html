@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -204,19 +205,43 @@
   <script src="https://unpkg.com/three@0.141.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
 
+  <!-- ONLY THIS SCRIPT BLOCK IS CHANGED -->
   <script>
-    let scene, camera, renderer, mixer, currentAction;
+    let scene, camera, renderer, mixer, currentAction, clock;
     const actions = {};
-    const clock = new THREE.Clock();
     const avatarCanvas = document.getElementById("avatarCanvas");
     const loaderOverlay = document.getElementById("avatarLoader");
 
-    function initAvatar() {
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, avatarCanvas.clientWidth / avatarCanvas.clientHeight, 0.1, 100);
-      camera.position.set(0, 1.35, 1);
+    function playAnimation(name) {
+      if (!actions[name]) return;
+      if (currentAction) currentAction.fadeOut(0.3);
+      currentAction = actions[name];
+      currentAction.reset().fadeIn(0.3).play();
+    }
 
-      renderer = new THREE.WebGLRenderer({ canvas: avatarCanvas, alpha: true, antialias: true });
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (mixer) mixer.update(delta);
+      renderer.render(scene, camera);
+    }
+
+    function initAvatar() {
+      clock = new THREE.Clock();
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(
+        45,
+        avatarCanvas.clientWidth / avatarCanvas.clientHeight,
+        0.1,
+        100
+      );
+      camera.position.set(0, 1.35, 0.4);
+
+      renderer = new THREE.WebGLRenderer({
+        canvas: avatarCanvas,
+        alpha: true,
+        antialias: true
+      });
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.shadowMap.enabled = true;
@@ -227,7 +252,6 @@
       const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
       keyLight.position.set(-5, 10, -5);
       keyLight.castShadow = true;
-      keyLight.shadow.mapSize.set(2048, 2048);
       scene.add(keyLight);
 
       const fillLight = new THREE.PointLight(0x99ccff, 1.7, 10);
@@ -239,13 +263,13 @@
       scene.add(rimLight);
 
       new THREE.GLTFLoader().load(
-        "https://cdn.glitch.me/f3169ad6-0ec6-4fc1-a8d9-3d6078010b38/JOEAI2.glb?v=1742804549888",
+        "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/JOEAI2.glb",
         (gltf) => {
           const model = gltf.scene;
-          model.scale.set(0.4, 0.4, 0.4);
+          model.scale.set(6, 6, 6);
           const box = new THREE.Box3().setFromObject(model);
           model.position.sub(box.getCenter(new THREE.Vector3()));
-          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
+          model.position.y = -box.getSize(new THREE.Vector3()).y / 1 + 1.35;
           scene.add(model);
 
           mixer = new THREE.AnimationMixer(model);
@@ -255,60 +279,66 @@
             actions[clip.name] = action;
           });
 
+          // expose for script.js
+          window.playAnimation = playAnimation;
+          window.avatarAnimations = Object.keys(actions);
+
           loaderOverlay.classList.add("hidden");
-          playAnimation("weight_shift");
+          if (actions["weight_shift"]) {
+            playAnimation("weight_shift");
+          } else {
+            const keys = Object.keys(actions);
+            if (keys.length) playAnimation(keys[0]);
+          }
           animate();
+        },
+        undefined,
+        (err) => {
+          console.error("GLB load error", err);
         }
       );
     }
 
-    function playAnimation(name) {
-      if (!actions[name]) return;
-      const next = actions[name];
-      if (currentAction === next) return;
-      next.reset().fadeIn(0.4).play();
-      if (currentAction) currentAction.crossFadeTo(next, 0.4, false);
-      currentAction = next;
-    }
+    // defer everything until after scripts & DOM are fully loaded
+    window.addEventListener("load", () => {
+      try {
+        initAvatar();
+      } catch (e) {
+        console.error("Avatar init error:", e);
+      }
 
-    function animate() {
-      requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      if (mixer) mixer.update(delta);
-      renderer.render(scene, camera);
-    }
-
-    initAvatar();
-
-    document.getElementById("toggleAvatarButton").addEventListener("click", () => {
-      const main = document.getElementById("mainInterface");
-      const hidden = avatarCanvas.style.display === "none";
-      avatarCanvas.style.display = hidden ? "block" : "none";
-      loaderOverlay.style.display = hidden ? "flex" : "none";
-      main.classList.toggle("avatar-off", !hidden);
-    });
-
-    document.getElementById("messageInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") document.getElementById("sendMessage").click();
-    });
-
-    window.addEventListener("resize", () => {
-      camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
-    });
-
-    window.checkPassword = async function () {
-      const val = document.getElementById("passwordInput").value;
-      const res = await fetch("/check-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: val }),
+      document.getElementById("toggleAvatarButton").addEventListener("click", () => {
+        const main = document.getElementById("mainInterface");
+        const hidden = avatarCanvas.style.display === "none";
+        avatarCanvas.style.display = hidden ? "block" : "none";
+        loaderOverlay.style.display = hidden ? "flex" : "none";
+        main.classList.toggle("avatar-off", !hidden);
       });
-      const data = await res.json();
-      if (data.success) document.getElementById("loginPopup").style.display = "none";
-      else alert("Incorrect password.");
-    };
+
+      document.getElementById("messageInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("sendMessage").click();
+      });
+
+      window.addEventListener("resize", () => {
+        if (!camera || !renderer) return;
+        camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
+      });
+
+      window.checkPassword = async function () {
+        const val = document.getElementById("passwordInput").value;
+        const res = await fetch("/api/check-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: val }),
+        });
+        const data = await res.json();
+        if (data.success)
+          document.getElementById("loginPopup").style.display = "none";
+        else alert("Incorrect password.");
+      };
+    });
   </script>
 
   <script src="script.js"></script>
