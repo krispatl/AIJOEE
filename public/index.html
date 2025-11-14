@@ -143,8 +143,7 @@
       background: rgba(255, 255, 255, 0.05);
       color: #e0e0e0;
     }
-    #sendMessage,
-    #talkButton {
+    #sendMessage, #talkButton {
       padding: 10px 14px;
       background: #00f0ff;
       color: #0f111a;
@@ -201,11 +200,11 @@
     </div>
   </div>
 
-  <!-- Only change here: bump Three.js + GLTFLoader version -->
-  <script src="https://unpkg.com/three@0.165.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.165.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- AVATAR & PASSWORD SCRIPT (ONLY PART CHANGED) -->
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.165.0/build/three.module.js";
+    import { GLTFLoader } from "https://unpkg.com/three@0.165.0/examples/jsm/loaders/GLTFLoader.js";
 
-  <script>
     let scene, camera, renderer, mixer, currentAction;
     const actions = {};
     const clock = new THREE.Clock();
@@ -262,7 +261,8 @@
       rimLight.position.set(5, 4, 4);
       scene.add(rimLight);
 
-      new THREE.GLTFLoader().load(
+      const loader = new GLTFLoader();
+      loader.load(
         "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/JOEAI2.glb",
         (gltf) => {
           const model = gltf.scene;
@@ -273,7 +273,6 @@
           model.position.sub(center);
           model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
 
-          // Ensure textures use correct color space
           model.traverse((obj) => {
             if (obj.isMesh && obj.material && obj.material.map) {
               obj.material.map.colorSpace = THREE.SRGBColorSpace;
@@ -290,7 +289,7 @@
             actions[clip.name] = action;
           });
 
-          // expose for script.js TTS animation logic
+          // expose for script.js (TTS animation)
           window.playAnimation = playAnimation;
           window.avatarAnimations = Object.keys(actions);
 
@@ -317,22 +316,18 @@
 
     initAvatar();
 
-    document
-      .getElementById("toggleAvatarButton")
-      .addEventListener("click", () => {
-        const main = document.getElementById("mainInterface");
-        const hidden = avatarCanvas.style.display === "none";
-        avatarCanvas.style.display = hidden ? "block" : "none";
-        loaderOverlay.style.display = hidden ? "flex" : "none";
-        main.classList.toggle("avatar-off", !hidden);
-      });
+    document.getElementById("toggleAvatarButton").addEventListener("click", () => {
+      const main = document.getElementById("mainInterface");
+      const hidden = avatarCanvas.style.display === "none";
+      avatarCanvas.style.display = hidden ? "block" : "none";
+      loaderOverlay.style.display = hidden ? "flex" : "none";
+      main.classList.toggle("avatar-off", !hidden);
+    });
 
-    document
-      .getElementById("messageInput")
-      .addEventListener("keydown", (e) => {
-        if (e.key === "Enter")
-          document.getElementById("sendMessage").click();
-      });
+    document.getElementById("messageInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter")
+        document.getElementById("sendMessage").click();
+    });
 
     window.addEventListener("resize", () => {
       camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
@@ -340,6 +335,7 @@
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
     });
 
+    // keep your password logic, but make it global
     window.checkPassword = async function () {
       const val = document.getElementById("passwordInput").value;
       const res = await fetch("/api/check-password", {
@@ -354,6 +350,7 @@
     };
   </script>
 
+  <!-- your existing chat / TTS / STT logic -->
   <script src="script.js"></script>
 </body>
 </html>
