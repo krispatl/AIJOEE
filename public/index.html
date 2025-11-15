@@ -718,60 +718,46 @@
     scene.add(rimLight);
 
     const loader = new THREE.GLTFLoader();
-    loader.load(
-      // 👇 your working GLB (use whatever URL you just exported)
-      "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joesep.glb",
-      (gltf) => {
-        const model = gltf.scene;
+  loader.load(
+  "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joesep.glb",
+  (gltf) => {
+    const model = gltf.scene;
 
-        // 🔹 keep Joe at size 4,4,4
-         model.scale.set(1, 1, 1);
+    // Restore old working scale
+    model.scale.set(0.4, 0.4, 0.4);
 
-        // Compute bounding box to center and ground him
-        const box   = new THREE.Box3().setFromObject(model);
-        const size  = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
+    // Restore old working positioning
+    const box = new THREE.Box3().setFromObject(model);
+    model.position.sub(box.getCenter(new THREE.Vector3()));
+    model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
 
-        // Center model at origin
-      
-model.position.sub(box.getCenter(new THREE.Vector3()));
-model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
+    scene.add(model);
 
-        scene.add(model);
+    // OLD— WORKING CAMERA FRAMING
+    camera.position.set(0, 1.35, 1);
+    camera.lookAt(0, 1.35, 0);
 
-        // Now place camera based on real size so he's nicely framed
-        const midY = size.y * 0.6;
-        const dist = size.y * 1.8;      // distance from model
-        camera.position.set(0, midY, dist);
-        camera.lookAt(0, midY, 0);
+    // ANIMATION (play first clip only)
+    mixer = new THREE.AnimationMixer(model);
 
-        mixer = new THREE.AnimationMixer(model);
-        const clips = gltf.animations || [];
-        clips.forEach((clip, idx) => {
-          const name = clip.name || `clip_${idx}`;
-          const action = mixer.clipAction(clip);
-          action.loop = THREE.LoopRepeat;
-          actions[name] = action;
-        });
+    if (gltf.animations && gltf.animations.length > 0) {
+      const firstClip = gltf.animations[0];
+      const action = mixer.clipAction(firstClip);
+      action.loop = THREE.LoopRepeat;
+      action.reset().fadeIn(0.4).play();
+      currentAction = action;
+    }
 
-        // expose if script.js wants to use it
-        window.playAnimation = playAnimation;
-        window.avatarAnimations = Object.keys(actions);
-
-        // pick first clip as default idle if any
-        const keys = Object.keys(actions);
-        if (keys.length) playAnimation(keys[0]);
-
-        loaderOverlay.classList.add("hidden");
-        animate();
-      },
-      undefined,
-      (err) => {
-        console.error("GLB load error", err);
-        loaderOverlay.classList.add("hidden");
-      }
-    );
+    loaderOverlay.classList.add("hidden");
+    animate();
+  },
+  undefined,
+  (err) => {
+    console.error("GLB load error", err);
+    loaderOverlay.classList.add("hidden");
   }
+);
+
 
   // Talk-state hooks (you can call from script.js during audio)
   window.startTalking = function () {
