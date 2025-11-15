@@ -733,9 +733,9 @@
         const center = box.getCenter(new THREE.Vector3());
 
         // Center model at origin
-        model.position.sub(center);
-        // Lift so feet sit near y = 0
-        model.position.y += size.y / 2;
+      
+model.position.sub(box.getCenter(new THREE.Vector3()));
+model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
 
         scene.add(model);
 
