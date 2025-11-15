@@ -660,169 +660,162 @@
   <script src="https://unpkg.com/three@0.141.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
 
-  <!-- Avatar + layout logic -->
-  <script>
-    let scene, camera, renderer, mixer, currentAction, clock;
-    const actions = {};
-    const avatarCanvas = document.getElementById("avatarCanvas");
-    const loaderOverlay = document.getElementById("avatarLoader");
-    const signalBars = document.getElementById("signalBars");
+<script>
+  let scene, camera, renderer, mixer, currentAction, clock;
+  const actions = {};
+  const avatarCanvas = document.getElementById("avatarCanvas");
+  const loaderOverlay = document.getElementById("avatarLoader");
+  const signalBars = document.getElementById("signalBars");
 
-    function playAnimation(name) {
-      if (!actions[name]) return;
-      if (currentAction) currentAction.fadeOut(0.25);
-      currentAction = actions[name];
-      currentAction.reset().fadeIn(0.25).play();
-    }
+  function playAnimation(name) {
+    if (!actions[name]) return;
+    if (currentAction) currentAction.fadeOut(0.25);
+    currentAction = actions[name];
+    currentAction.reset().fadeIn(0.25).play();
+  }
 
-    function animate() {
-      requestAnimationFrame(animate);
-      if (!clock || !renderer || !scene || !camera) return;
-      const delta = clock.getDelta();
-      if (mixer) mixer.update(delta);
-      renderer.render(scene, camera);
-    }
+  function animate() {
+    requestAnimationFrame(animate);
+    if (!clock || !renderer || !scene || !camera) return;
+    const delta = clock.getDelta();
+    if (mixer) mixer.update(delta);
+    renderer.render(scene, camera);
+  }
 
-    function initAvatar() {
-      clock = new THREE.Clock();
-      scene = new THREE.Scene();
+  function initAvatar() {
+    clock = new THREE.Clock();
+    scene = new THREE.Scene();
 
-      camera = new THREE.PerspectiveCamera(
-        45,
-        avatarCanvas.clientWidth / avatarCanvas.clientHeight,
-        0.1,
-        100
-      );
-      // Position tuned for a nice mid shot with scale 4
-      camera.position.set(0, 1.35, 0.65);
+    const width  = avatarCanvas.clientWidth  || avatarCanvas.offsetWidth  || 400;
+    const height = avatarCanvas.clientHeight || avatarCanvas.offsetHeight || 400;
 
-      renderer = new THREE.WebGLRenderer({
-        canvas: avatarCanvas,
-        alpha: true,
-        antialias: true
-      });
-      renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.shadowMap.enabled = true;
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      renderer.setClearColor(0x000000, 0);
+    camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
+    camera.position.set(0, 1.4, 6);   // rough starting guess
+    camera.lookAt(0, 1.4, 0);
 
-      const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-      keyLight.position.set(-5, 10, -5);
-      keyLight.castShadow = true;
-      scene.add(keyLight);
-
-      const fillLight = new THREE.PointLight(0x99ccff, 1.7, 10);
-      fillLight.position.set(3, 2, 5);
-      scene.add(fillLight);
-
-      const rimLight = new THREE.DirectionalLight(0xffeecc, 0.9);
-      rimLight.position.set(5, 4, 4);
-      scene.add(rimLight);
-
-      const loader = new THREE.GLTFLoader();
-      loader.load(
-        // Use your working GLB URL here
-        "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joesep.glb",
-        (gltf) => {
-          const model = gltf.scene;
-
-          // 🔹 Keep Joe at scale 4, 4, 4 as requested
-          model.scale.set(4, 4, 4);
-
-          const box = new THREE.Box3().setFromObject(model);
-          model.position.sub(box.getCenter(new THREE.Vector3()));
-          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 0.05;
-          scene.add(model);
-
-          mixer = new THREE.AnimationMixer(model);
-          const clips = gltf.animations || [];
-          clips.forEach((clip, idx) => {
-            const name = clip.name || `clip_${idx}`;
-            const action = mixer.clipAction(clip);
-            action.loop = THREE.LoopRepeat;
-            actions[name] = action;
-          });
-
-          // Expose for script.js if needed
-          window.playAnimation = playAnimation;
-          window.avatarAnimations = Object.keys(actions);
-
-          // Default: idle animation if one exists
-          const keys = Object.keys(actions);
-          if (keys.length) playAnimation(keys[0]);
-
-          loaderOverlay.classList.add("hidden");
-          animate();
-        },
-        undefined,
-        (err) => {
-          console.error("GLB load error", err);
-          loaderOverlay.classList.add("hidden");
-        }
-      );
-    }
-
-    // Simple hooks you can call from script.js if you want animation only while talking
-    window.startTalking = function () {
-      signalBars.classList.add("talking");
-    };
-    window.stopTalking = function () {
-      signalBars.classList.remove("talking");
-    };
-
-    window.addEventListener("load", () => {
-      if (typeof THREE === "undefined") {
-        console.error("THREE did not load.");
-        loaderOverlay.classList.add("hidden");
-        return;
-      }
-
-      try {
-        initAvatar();
-      } catch (e) {
-        console.error("Avatar init error:", e);
-        loaderOverlay.classList.add("hidden");
-      }
-
-      document.getElementById("toggleAvatarButton").addEventListener("click", () => {
-        const main = document.getElementById("mainInterface");
-        const isOff = main.classList.toggle("avatar-off");
-        if (isOff) {
-          signalBars.classList.remove("talking");
-        }
-      });
-
-      document.getElementById("messageInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          document.getElementById("sendMessage").click();
-        }
-      });
-
-      window.addEventListener("resize", () => {
-        if (!camera || !renderer) return;
-        camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
-      });
-
-      window.checkPassword = async function () {
-        const val = document.getElementById("passwordInput").value;
-        const res = await fetch("/api/check-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: val }),
-        });
-        const data = await res.json();
-        if (data.success) {
-          document.getElementById("loginPopup").style.display = "none";
-        } else {
-          alert("Incorrect password.");
-        }
-      };
+    renderer = new THREE.WebGLRenderer({
+      canvas: avatarCanvas,
+      alpha: true,
+      antialias: true
     });
-  </script>
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.setClearColor(0x000000, 0);
 
+    // Lights
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
+    keyLight.position.set(-5, 10, -5);
+    keyLight.castShadow = true;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.PointLight(0x99ccff, 1.7, 10);
+    fillLight.position.set(3, 2, 5);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xffeecc, 0.9);
+    rimLight.position.set(5, 4, 4);
+    scene.add(rimLight);
+
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+      // 👇 your working GLB (use whatever URL you just exported)
+      "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joe_clean.glb",
+      (gltf) => {
+        const model = gltf.scene;
+
+        // 🔹 keep Joe at size 4,4,4
+        model.scale.set(4, 4, 4);
+
+        // Compute bounding box to center and ground him
+        const box   = new THREE.Box3().setFromObject(model);
+        const size  = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+
+        // Center model at origin
+        model.position.sub(center);
+        // Lift so feet sit near y = 0
+        model.position.y += size.y / 2;
+
+        scene.add(model);
+
+        // Now place camera based on real size so he's nicely framed
+        const midY = size.y * 0.6;
+        const dist = size.y * 1.8;      // distance from model
+        camera.position.set(0, midY, dist);
+        camera.lookAt(0, midY, 0);
+
+        mixer = new THREE.AnimationMixer(model);
+        const clips = gltf.animations || [];
+        clips.forEach((clip, idx) => {
+          const name = clip.name || `clip_${idx}`;
+          const action = mixer.clipAction(clip);
+          action.loop = THREE.LoopRepeat;
+          actions[name] = action;
+        });
+
+        // expose if script.js wants to use it
+        window.playAnimation = playAnimation;
+        window.avatarAnimations = Object.keys(actions);
+
+        // pick first clip as default idle if any
+        const keys = Object.keys(actions);
+        if (keys.length) playAnimation(keys[0]);
+
+        loaderOverlay.classList.add("hidden");
+        animate();
+      },
+      undefined,
+      (err) => {
+        console.error("GLB load error", err);
+        loaderOverlay.classList.add("hidden");
+      }
+    );
+  }
+
+  // Talk-state hooks (you can call from script.js during audio)
+  window.startTalking = function () {
+    if (signalBars) signalBars.classList.add("talking");
+  };
+  window.stopTalking = function () {
+    if (signalBars) signalBars.classList.remove("talking");
+  };
+
+  window.addEventListener("load", () => {
+    if (typeof THREE === "undefined") {
+      console.error("THREE did not load.");
+      loaderOverlay.classList.add("hidden");
+      return;
+    }
+
+    try {
+      initAvatar();
+    } catch (e) {
+      console.error("Avatar init error:", e);
+      loaderOverlay.classList.add("hidden");
+    }
+
+    document.getElementById("toggleAvatarButton").addEventListener("click", () => {
+      const main = document.getElementById("mainInterface");
+      const isOff = main.classList.toggle("avatar-off");
+      if (isOff && signalBars) signalBars.classList.remove("talking");
+    });
+
+    document.getElementById("messageInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("sendMessage").click();
+    });
+
+    window.addEventListener("resize", () => {
+      if (!camera || !renderer) return;
+      const w = avatarCanvas.clientWidth || avatarCanvas.offsetWidth || 400;
+      const h = avatarCanvas.clientHeight || avatarCanvas.offsetHeight || 400;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+  });
+</script>
   <!-- Your existing chat / audio logic -->
   <script src="script.js"></script>
 </body>
