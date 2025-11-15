@@ -689,9 +689,8 @@
     const width  = avatarCanvas.clientWidth  || avatarCanvas.offsetWidth  || 400;
     const height = avatarCanvas.clientHeight || avatarCanvas.offsetHeight || 400;
 
-    camera = new THREE.PerspectiveCamera(35, width / height, 0.1, 100);
-    camera.position.set(0, 1.4, 6);   // rough starting guess
-    camera.lookAt(0, 1.4, 0);
+    camera = new THREE.PerspectiveCamera(45, avatarCanvas.clientWidth / avatarCanvas.clientHeight, 0.1, 100);
+ camera.position.set(0, 1.35, 1);
 
     renderer = new THREE.WebGLRenderer({
       canvas: avatarCanvas,
@@ -726,7 +725,7 @@
         const model = gltf.scene;
 
         // 🔹 keep Joe at size 4,4,4
-        model.scale.set(4, 4, 4);
+         model.scale.set(0.4, 0.4, 0.4);
 
         // Compute bounding box to center and ground him
         const box   = new THREE.Box3().setFromObject(model);
