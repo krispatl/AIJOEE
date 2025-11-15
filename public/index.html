@@ -816,6 +816,30 @@
     });
   });
 </script>
+
+  <!-- Global password handler so onclick="checkPassword()" works -->
+<script>
+async function checkPassword() {
+  try {
+    const val = document.getElementById("passwordInput").value;
+    const res = await fetch("/api/check-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: val }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById("loginPopup").style.display = "none";
+    } else {
+      alert("Incorrect password.");
+    }
+  } catch (err) {
+    console.error("checkPassword error:", err);
+    alert("Error checking password.");
+  }
+}
+</script>
+
   <!-- Your existing chat / audio logic -->
   <script src="script.js"></script>
 </body>
