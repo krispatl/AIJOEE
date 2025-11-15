@@ -4,223 +4,680 @@
   <meta charset="UTF-8" />
   <title>AI JOE</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet" />
-  <!-- inline favicon to stop /favicon.ico 404 -->
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+
   <style>
-    * { box-sizing: border-box; }
-    body {
-      background: radial-gradient(circle at 50% 50%, #0f111a 0%, #080a12 100%);
-      color: #e0e0e0;
-      font-family: 'Inter', sans-serif;
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #050712;
+      --bg-elevated: rgba(18, 24, 40, 0.96);
+      --bg-elevated-soft: rgba(12, 16, 30, 0.9);
+      --border-subtle: rgba(120, 150, 255, 0.18);
+      --accent: #00f0ff;
+      --accent-soft: rgba(0, 240, 255, 0.14);
+      --accent-warm: #ff7aa2;
+      --text-main: #e6ecff;
+      --text-muted: #a0abc0;
+      --shadow-soft: 0 26px 60px rgba(0, 0, 0, 0.75);
+      --radius-lg: 18px;
+      --radius-xl: 26px;
+      --transition-fast: 0.18s ease-out;
+    }
+
+    html, body {
       margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at 20% -10%, rgba(0, 240, 255, 0.16), transparent 55%),
+        radial-gradient(circle at 80% 110%, rgba(255, 122, 162, 0.16), transparent 55%),
+        radial-gradient(circle at 50% 50%, #050712, #020309 65%, #000 100%);
+      color: var(--text-main);
       overflow: hidden;
     }
+
+    /* Login overlay */
+
     #loginPopup {
       position: fixed;
       inset: 0;
-      background: rgba(15, 17, 26, 0.9);
-      backdrop-filter: blur(6px);
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 0, rgba(0, 240, 255, 0.12), rgba(5, 7, 18, 0.95));
+      backdrop-filter: blur(10px);
       z-index: 9999;
     }
+
     .login-box {
-      background: rgba(255, 255, 255, 0.04);
-      padding: 24px;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      text-align: center;
       width: 90%;
-      max-width: 320px;
+      max-width: 360px;
+      padding: 24px 22px 22px;
+      border-radius: 20px;
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.12), rgba(10, 12, 26, 0.98));
+      border: 1px solid rgba(0, 240, 255, 0.38);
+      box-shadow: 0 26px 70px rgba(0, 0, 0, 0.85);
+      text-align: left;
     }
-    .login-box input,
+
+    .login-box h2 {
+      margin: 0 0 6px;
+      font-size: 1.1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .login-box p {
+      margin: 0 0 14px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .login-box input {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 11px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 240, 255, 0.45);
+      background: rgba(1, 4, 12, 0.9);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .login-box input::placeholder {
+      color: rgba(160, 171, 192, 0.85);
+    }
+
     .login-box button {
       width: 100%;
-      padding: 12px;
-      margin-top: 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      background: rgba(255, 255, 255, 0.05);
-      color: #e0e0e0;
-    }
-    .login-box button {
-      background: #00f0ff;
-      color: #0f111a;
-      font-weight: bold;
+      margin-top: 14px;
+      padding: 11px 0;
+      border-radius: 999px;
       border: none;
+      background: linear-gradient(120deg, var(--accent), #4af0ff);
+      color: #020309;
+      font-weight: 600;
+      font-size: 0.92rem;
       cursor: pointer;
+      box-shadow: 0 14px 30px rgba(0, 240, 255, 0.45);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
     }
+
+    .login-box button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(0, 240, 255, 0.55);
+      filter: brightness(1.05);
+    }
+
+    .login-box button:active {
+      transform: translateY(0);
+      box-shadow: 0 10px 26px rgba(0, 240, 255, 0.4);
+      filter: brightness(0.97);
+    }
+
+    /* Shell */
+
     .main-interface {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      grid-template-rows: auto 1fr;
+      position: relative;
       height: 100vh;
       width: 100vw;
-      transition: all 0.3s ease;
-    }
-    .main-interface.avatar-off { grid-template-columns: 1fr; }
-    .top-bar {
-      grid-column: 1 / -1;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
-      color: #00f0ff;
-      font-weight: 600;
-    }
-    .top-bar button {
-      padding: 10px 14px;
-      background: #00f0ff;
-      color: #0f111a;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .center-panel {
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.02);
-      border-right: 1px solid rgba(0, 240, 255, 0.15);
       display: flex;
       flex-direction: column;
-      height: 100%;
-      min-height: 0;
+      padding: 14px 16px 18px;
+      gap: 12px;
+      color: var(--text-main);
     }
-    .main-interface.avatar-off .center-panel {
-      margin: 0 auto;
-      border-right: none;
-    }
-    #avatarCanvas {
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.01);
-      display: block;
-    }
-    #avatarLoader {
-      position: absolute;
-      inset: 0;
+
+    .top-bar {
       display: flex;
-      justify-content: center;
       align-items: center;
-      background: rgba(0, 0, 0, 0.25);
-      z-index: 10;
-    }
-    #avatarLoader.hidden { display: none; }
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.2);
-      border-top: 4px solid #00f0ff;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    #scrolling-text {
-      font-family: 'Fira Code', monospace;
-      flex: 1;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 16px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 240, 255, 0.1);
-    }
-    .terminal-output p { margin: 6px 0; font-size: 0.9em; }
-    .terminal { display: flex; gap: 8px; flex-wrap: wrap; }
-    #messageInput {
-      flex: 1;
-      min-width: 180px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(0, 240, 255, 0.3);
-      background: rgba(255, 255, 255, 0.05);
-      color: #e0e0e0;
-    }
-    #sendMessage, #talkButton {
+      justify-content: space-between;
       padding: 10px 14px;
-      background: #00f0ff;
-      color: #0f111a;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      border-radius: 999px;
+      background: linear-gradient(to right, rgba(7, 11, 28, 0.96), rgba(9, 15, 35, 0.96));
+      border: 1px solid rgba(96, 118, 255, 0.35);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(16px);
     }
-    #systemReady { animation: pulse 2s infinite alternate; }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 30% 0, rgba(255, 255, 255, 0.85), transparent 60%),
+        conic-gradient(from 210deg, #00f0ff, #ff7aa2, #8f7bff, #00f0ff);
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      inset: 20%;
+      border-radius: inherit;
+      background: radial-gradient(circle at 30% 20%, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.9));
+    }
+
+    .product-title {
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+    }
+
+    .product-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .top-middle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid rgba(0, 240, 255, 0.5);
+      color: var(--accent);
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.25), rgba(0, 0, 0, 0.8));
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #32ff9c;
+      box-shadow: 0 0 12px rgba(50, 255, 156, 0.9);
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ghost-btn {
+      font-size: 0.78rem;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(116, 138, 255, 0.6);
+      background: radial-gradient(circle at 0 0, rgba(116, 138, 255, 0.18), rgba(5, 8, 20, 0.95));
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .ghost-btn:hover {
+      border-color: var(--accent);
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.28), rgba(7, 12, 28, 0.98));
+      transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(0, 240, 255, 0.28);
+    }
+
+    .ghost-btn span.icon {
+      font-size: 0.9rem;
+    }
+
+    /* Content area */
+
+    .content {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      gap: 14px;
+    }
+
+    .chat-panel {
+      flex: 1.1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius-xl);
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.1), rgba(4, 7, 20, 0.96));
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px);
+      padding: 14px 14px 12px;
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+
+    .chat-header-title {
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .chat-header-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+
+    #scrolling-text {
+      flex: 1;
+      min-height: 0;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      padding: 12px 10px;
+      border-radius: 14px;
+      background: rgba(3, 8, 22, 0.96);
+      border: 1px solid rgba(80, 105, 210, 0.5);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.85);
+      overflow-y: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.83rem;
+    }
+
+    #scrolling-text::-webkit-scrollbar {
+      width: 7px;
+    }
+    #scrolling-text::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, rgba(0, 240, 255, 0.4), rgba(148, 163, 255, 0.4));
+      border-radius: 999px;
+    }
+
+    #conversationOutput p {
+      margin: 6px 0;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.07), rgba(7, 12, 30, 0.92));
+      border: 1px solid rgba(86, 109, 215, 0.5);
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    #systemReady {
+      animation: pulse 2s ease-in-out infinite;
+      color: var(--accent);
+      border-color: rgba(0, 240, 255, 0.75);
+    }
+
     @keyframes pulse {
       0% { opacity: 1; }
       100% { opacity: 0.5; }
     }
-    #scrolling-text::-webkit-scrollbar { width: 6px; }
-    #scrolling-text::-webkit-scrollbar-thumb {
-      background: rgba(0, 240, 255, 0.2);
-      border-radius: 4px;
+
+    .terminal {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    #messageInput {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(112, 133, 255, 0.85);
+      background: radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.13), rgba(4, 7, 20, 0.98));
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+    }
+
+    #messageInput::placeholder {
+      color: rgba(154, 167, 203, 0.85);
+    }
+
+    #sendMessage,
+    #talkButton {
+      padding: 9px 13px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+    }
+
+    #sendMessage {
+      background: linear-gradient(135deg, var(--accent), #4af0ff);
+      color: #020309;
+      box-shadow: 0 10px 30px rgba(0, 240, 255, 0.45);
+    }
+
+    #sendMessage:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 14px 40px rgba(0, 240, 255, 0.5);
+    }
+
+    #sendMessage:active {
+      transform: translateY(0);
+      filter: brightness(0.98);
+      box-shadow: 0 8px 24px rgba(0, 240, 255, 0.4);
+    }
+
+    #talkButton {
+      background: radial-gradient(circle at 0 0, rgba(255, 122, 162, 0.8), rgba(120, 82, 255, 0.9));
+      color: #050712;
+      box-shadow: 0 10px 30px rgba(255, 122, 162, 0.55);
+    }
+
+    #talkButton:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+      box-shadow: 0 16px 40px rgba(255, 122, 162, 0.65);
+    }
+
+    #talkButton:active {
+      transform: translateY(0);
+      filter: brightness(0.97);
+      box-shadow: 0 8px 24px rgba(255, 122, 162, 0.5);
+    }
+
+    .talk-icon {
+      font-size: 1rem;
+    }
+
+    /* Avatar panel */
+
+    .avatar-panel {
+      flex: 0.9;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .avatar-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at 0 0, rgba(0, 240, 255, 0.2), rgba(3, 5, 16, 0.98)),
+        radial-gradient(circle at 120% 120%, rgba(255, 122, 162, 0.3), transparent 55%);
+      border: 1px solid rgba(110, 140, 255, 0.6);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(20px);
+      padding: 12px 12px 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at 20% 0, rgba(255, 255, 255, 0.06), transparent 50%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .avatar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1;
+      position: relative;
+    }
+
+    .avatar-label {
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(213, 222, 255, 0.9);
+    }
+
+    .avatar-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .signal-bar {
+      width: 3px;
+      border-radius: 999px;
+      background: rgba(0, 240, 255, 0.3);
+      height: 4px;
+    }
+
+    .signal-bar:nth-child(2) { height: 7px; }
+    .signal-bar:nth-child(3) { height: 11px; }
+    .signal-bar:nth-child(4) { height: 15px; }
+
+    .signal-bars.talking .signal-bar {
+      animation: bars 500ms ease-in-out infinite alternate;
+    }
+
+    @keyframes bars {
+      0% { transform: scaleY(0.5); }
+      100% { transform: scaleY(1.4); }
+    }
+
+    .avatar-view {
+      position: relative;
+      flex: 1;
+      margin-top: 10px;
+      border-radius: 18px;
+      background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.1), rgba(3, 5, 14, 0.98));
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.9),
+        0 0 40px rgba(0, 240, 255, 0.36);
+      overflow: hidden;
+    }
+
+    #avatarCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #avatarLoader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 0, rgba(0, 240, 255, 0.15), rgba(2, 4, 12, 0.96));
+      z-index: 5;
+    }
+
+    #avatarLoader.hidden {
+      display: none;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 3px solid rgba(255, 255, 255, 0.22);
+      border-top-color: var(--accent);
+      animation: spin 900ms linear infinite;
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.75);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Avatar off */
+
+    .main-interface.avatar-off .avatar-panel {
+      display: none;
+    }
+
+    .main-interface.avatar-off .chat-panel {
+      flex: 1;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 900px) {
+      .main-interface {
+        padding: 10px;
+      }
+      .content {
+        flex-direction: column;
+      }
+      .avatar-panel {
+        flex: 0.9;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Login overlay -->
   <div id="loginPopup">
     <div class="login-box">
-      <h2>Enter Password</h2>
+      <h2>Secure Access</h2>
+      <p>Enter your access phrase to start a session with AI JOE.</p>
       <input type="password" id="passwordInput" placeholder="Password" />
-      <button onclick="checkPassword()">Submit</button>
+      <button onclick="checkPassword()">Unlock Terminal</button>
     </div>
   </div>
 
   <div class="main-interface" id="mainInterface">
+    <!-- Top bar -->
     <div class="top-bar">
-      <span class="title">AI JOE TERMINAL V3</span>
-      <span class="status">STATUS: CONNECTED</span>
-      <button id="toggleAvatarButton">Toggle Avatar</button>
-    </div>
-
-    <div class="center-panel">
-      <div id="scrolling-text">
-        <div class="terminal-output" id="conversationOutput">
-          <p>Initializing AI JOE...</p>
-          <p id="systemReady">System Ready.</p>
+      <div class="top-left">
+        <div class="brand-mark"></div>
+        <div>
+          <div class="product-title">AI JOE TERMINAL</div>
+          <div class="product-subtitle">Conversational Agent Interface</div>
         </div>
       </div>
-      <div class="terminal">
-        <input type="text" id="messageInput" placeholder="Enter your message..." />
-        <button id="sendMessage">Send</button>
-        <button id="talkButton">🎙️ Talk</button>
+
+      <div class="top-middle">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusText">ONLINE</span>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <button id="toggleAvatarButton" class="ghost-btn">
+          <span class="icon">🧑‍🚀</span>
+          <span>Toggle Avatar</span>
+        </button>
       </div>
     </div>
 
-    <div style="position: relative;">
-      <canvas id="avatarCanvas"></canvas>
-      <div id="avatarLoader"><div class="spinner"></div></div>
+    <!-- Content area -->
+    <div class="content">
+      <!-- Chat panel -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div>
+            <div class="chat-header-title">Conversation Log</div>
+            <div class="chat-header-sub">Messages between you and JOE</div>
+          </div>
+          <div class="chat-header-sub">Press <strong>Enter</strong> to send</div>
+        </div>
+
+        <div id="scrolling-text">
+          <div class="terminal-output" id="conversationOutput">
+            <p>Initializing AI JOE...</p>
+            <p id="systemReady">System Ready.</p>
+          </div>
+        </div>
+
+        <div class="terminal">
+          <input type="text" id="messageInput" placeholder="Type a message to JOE..." />
+          <button id="sendMessage">Send</button>
+          <button id="talkButton"><span class="talk-icon">🎙️</span> Talk</button>
+        </div>
+      </div>
+
+      <!-- Avatar panel -->
+      <div class="avatar-panel">
+        <div class="avatar-card">
+          <div class="avatar-header">
+            <div>
+              <div class="avatar-label">Virtual Entity: JOE</div>
+              <div class="avatar-sub">Real-time embodied agent</div>
+            </div>
+            <div class="signal-bars" id="signalBars">
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+              <div class="signal-bar"></div>
+            </div>
+          </div>
+
+          <div class="avatar-view">
+            <canvas id="avatarCanvas"></canvas>
+            <div id="avatarLoader"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  <!-- Three.js core + GLader MUST come first -->
- <script src="https://unpkg.com/three@0.141.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.141.0/examples/js/loaders/GLTFLoader.js"></script>
 
-  <!-- Avatar + UI init -->
+  <!-- Three.js core + GLTFLoader -->
+  <script src="https://threejs.org/build/three.min.js"></script>
+  <script src="https://threejs.org/examples/js/loaders/GLTFLoader.js"></script>
+
+  <!-- Avatar + layout logic -->
   <script>
     let scene, camera, renderer, mixer, currentAction, clock;
     const actions = {};
     const avatarCanvas = document.getElementById("avatarCanvas");
     const loaderOverlay = document.getElementById("avatarLoader");
+    const signalBars = document.getElementById("signalBars");
 
     function playAnimation(name) {
       if (!actions[name]) return;
-      if (currentAction) currentAction.fadeOut(0.3);
+      if (currentAction) currentAction.fadeOut(0.25);
       currentAction = actions[name];
-      currentAction.reset().fadeIn(0.3).play();
+      currentAction.reset().fadeIn(0.25).play();
     }
 
     function animate() {
       requestAnimationFrame(animate);
+      if (!clock || !renderer || !scene || !camera) return;
       const delta = clock.getDelta();
       if (mixer) mixer.update(delta);
       renderer.render(scene, camera);
@@ -236,21 +693,18 @@
         0.1,
         100
       );
-
-      // Slightly higher + closer = bigger Joe on screen
-      camera.position.set(0, 1.4, 0.4);
+      // Position tuned for a nice mid shot with scale 4
+      camera.position.set(0, 1.35, 0.65);
 
       renderer = new THREE.WebGLRenderer({
         canvas: avatarCanvas,
         alpha: true,
-        antialias: true,
+        antialias: true
       });
       renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.shadowMap.enabled = true;
       renderer.outputEncoding = THREE.sRGBEncoding;
-
-      scene.fog = new THREE.Fog(0x000000, 15, 30);
       renderer.setClearColor(0x000000, 0);
 
       const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
@@ -268,67 +722,37 @@
 
       const loader = new THREE.GLTFLoader();
       loader.load(
-        // 👇 your new working GLB URL
-        "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joesep.glb",
+        // Use your working GLB URL here
+        "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/JOEAI2.glb",
         (gltf) => {
           const model = gltf.scene;
 
-          // 🔥 Make Joe bigger here
+          // 🔹 Keep Joe at scale 4, 4, 4 as requested
           model.scale.set(4, 4, 4);
 
-          // Center him in front of camera
           const box = new THREE.Box3().setFromObject(model);
           model.position.sub(box.getCenter(new THREE.Vector3()));
-          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 0.1;
+          model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 0.05;
           scene.add(model);
 
           mixer = new THREE.AnimationMixer(model);
-
           const clips = gltf.animations || [];
-          let firstAction = null;
-
           clips.forEach((clip, idx) => {
             const name = clip.name || `clip_${idx}`;
             const action = mixer.clipAction(clip);
             action.loop = THREE.LoopRepeat;
-            action.clampWhenFinished = false;
             actions[name] = action;
-            if (!firstAction) firstAction = action;
           });
 
-          // Expose original API for later if you want
+          // Expose for script.js if needed
           window.playAnimation = playAnimation;
           window.avatarAnimations = Object.keys(actions);
 
-          // Pick a "talk" clip – if we only have one, use that
-          let talkingAction = null;
-          const talkName = Object.keys(actions).find((n) =>
-            n.toLowerCase().includes("talk")
-          );
-          if (talkName) {
-            talkingAction = actions[talkName];
-          } else if (firstAction) {
-            talkingAction = firstAction;
-          }
-
-          // 👇 Public hooks for script.js (ElevenLabs audio)
-          window.startTalking = () => {
-            if (!talkingAction) return;
-            talkingAction.reset();
-            talkingAction.paused = false;
-            talkingAction.play();
-          };
-
-          window.stopTalking = () => {
-            if (!talkingAction) return;
-            talkingAction.stop();
-          };
+          // Default: idle animation if one exists
+          const keys = Object.keys(actions);
+          if (keys.length) playAnimation(keys[0]);
 
           loaderOverlay.classList.add("hidden");
-
-          // ❌ DO NOT autoplay animation here – we want idle until audio plays
-          // if you want a subtle idle later, we can add a separate idle clip
-
           animate();
         },
         undefined,
@@ -338,6 +762,14 @@
         }
       );
     }
+
+    // Simple hooks you can call from script.js if you want animation only while talking
+    window.startTalking = function () {
+      signalBars.classList.add("talking");
+    };
+    window.stopTalking = function () {
+      signalBars.classList.remove("talking");
+    };
 
     window.addEventListener("load", () => {
       if (typeof THREE === "undefined") {
@@ -353,32 +785,25 @@
         loaderOverlay.classList.add("hidden");
       }
 
-      document
-        .getElementById("toggleAvatarButton")
-        .addEventListener("click", () => {
-          const main = document.getElementById("mainInterface");
-          const hidden = avatarCanvas.style.display === "none";
-          avatarCanvas.style.display = hidden ? "block" : "none";
-          loaderOverlay.style.display = hidden ? "flex" : "none";
-          main.classList.toggle("avatar-off", !hidden);
-        });
+      document.getElementById("toggleAvatarButton").addEventListener("click", () => {
+        const main = document.getElementById("mainInterface");
+        const isOff = main.classList.toggle("avatar-off");
+        if (isOff) {
+          signalBars.classList.remove("talking");
+        }
+      });
 
-      document
-        .getElementById("messageInput")
-        .addEventListener("keydown", (e) => {
-          if (e.key === "Enter")
-            document.getElementById("sendMessage").click();
-        });
+      document.getElementById("messageInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("sendMessage").click();
+        }
+      });
 
       window.addEventListener("resize", () => {
         if (!camera || !renderer) return;
-        camera.aspect =
-          avatarCanvas.clientWidth / avatarCanvas.clientHeight;
+        camera.aspect = avatarCanvas.clientWidth / avatarCanvas.clientHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(
-          avatarCanvas.clientWidth,
-          avatarCanvas.clientHeight
-        );
+        renderer.setSize(avatarCanvas.clientWidth, avatarCanvas.clientHeight);
       });
 
       window.checkPassword = async function () {
@@ -389,15 +814,16 @@
           body: JSON.stringify({ password: val }),
         });
         const data = await res.json();
-        if (data.success)
+        if (data.success) {
           document.getElementById("loginPopup").style.display = "none";
-        else alert("Incorrect password.");
+        } else {
+          alert("Incorrect password.");
+        }
       };
     });
   </script>
 
-  <!-- Your main app logic (chat, ElevenLabs, etc.) -->
+  <!-- Your existing chat / audio logic -->
   <script src="script.js"></script>
 </body>
 </html>
-
