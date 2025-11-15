@@ -682,82 +682,80 @@
     renderer.render(scene, camera);
   }
 
-  function initAvatar() {
-    clock = new THREE.Clock();
-    scene = new THREE.Scene();
+function initAvatar() {
+  clock = new THREE.Clock();
+  scene = new THREE.Scene();
 
-    const width  = avatarCanvas.clientWidth  || avatarCanvas.offsetWidth  || 400;
-    const height = avatarCanvas.clientHeight || avatarCanvas.offsetHeight || 400;
+  const width  = avatarCanvas.clientWidth  || avatarCanvas.offsetWidth  || 400;
+  const height = avatarCanvas.clientHeight || avatarCanvas.offsetHeight || 400;
 
-    camera = new THREE.PerspectiveCamera(45, avatarCanvas.clientWidth / avatarCanvas.clientHeight, 0.1, 100);
- camera.position.set(0, 1.35, 1);
+  camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+  camera.position.set(0, 1.35, 1);
 
-    renderer = new THREE.WebGLRenderer({
-      canvas: avatarCanvas,
-      alpha: true,
-      antialias: true
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.shadowMap.enabled = true;
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.setClearColor(0x000000, 0);
+  renderer = new THREE.WebGLRenderer({
+    canvas: avatarCanvas,
+    alpha: true,
+    antialias: true
+  });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.shadowMap.enabled = true;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.setClearColor(0x000000, 0);
 
-    // Lights
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
-    keyLight.position.set(-5, 10, -5);
-    keyLight.castShadow = true;
-    scene.add(keyLight);
+  // Lights
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
+  keyLight.position.set(-5, 10, -5);
+  scene.add(keyLight);
 
-    const fillLight = new THREE.PointLight(0x99ccff, 1.7, 10);
-    fillLight.position.set(3, 2, 5);
-    scene.add(fillLight);
+  const fillLight = new THREE.PointLight(0x99ccff, 1.7, 10);
+  fillLight.position.set(3, 2, 5);
+  scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xffeecc, 0.9);
-    rimLight.position.set(5, 4, 4);
-    scene.add(rimLight);
+  const rimLight = new THREE.DirectionalLight(0xffeecc, 0.9);
+  rimLight.position.set(5, 4, 4);
+  scene.add(rimLight);
 
-    const loader = new THREE.GLTFLoader();
+  // Load Joe model
+  const loader = new THREE.GLTFLoader();
   loader.load(
-  "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joesep.glb",
-  (gltf) => {
-    const model = gltf.scene;
+    "https://egz7ok1p9clzqfwm.public.blob.vercel-storage.com/joesep.glb",
+    (gltf) => {
+      const model = gltf.scene;
 
-    // Restore old working scale
-    model.scale.set(0.4, 0.4, 0.4);
+      // Same scale as original working version
+      model.scale.set(0.4, 0.4, 0.4);
 
-    // Restore old working positioning
-    const box = new THREE.Box3().setFromObject(model);
-    model.position.sub(box.getCenter(new THREE.Vector3()));
-    model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
+      // Center and ground model
+      const box = new THREE.Box3().setFromObject(model);
+      model.position.sub(box.getCenter(new THREE.Vector3()));
+      model.position.y = -box.getSize(new THREE.Vector3()).y / 2 + 1.35;
 
-    scene.add(model);
+      scene.add(model);
 
-    // OLD— WORKING CAMERA FRAMING
-    camera.position.set(0, 1.35, 1);
-    camera.lookAt(0, 1.35, 0);
+      // Camera framing
+      camera.position.set(0, 1.35, 1);
+      camera.lookAt(0, 1.35, 0);
 
-    // ANIMATION (play first clip only)
-    mixer = new THREE.AnimationMixer(model);
+      // Animation — play first clip
+      mixer = new THREE.AnimationMixer(model);
+      if (gltf.animations && gltf.animations.length > 0) {
+        const first = gltf.animations[0];
+        const action = mixer.clipAction(first);
+        action.loop = THREE.LoopRepeat;
+        action.reset().fadeIn(0.4).play();
+      }
 
-    if (gltf.animations && gltf.animations.length > 0) {
-      const firstClip = gltf.animations[0];
-      const action = mixer.clipAction(firstClip);
-      action.loop = THREE.LoopRepeat;
-      action.reset().fadeIn(0.4).play();
-      currentAction = action;
+      loaderOverlay.classList.add("hidden");
+      animate();
+    },
+    undefined,
+    (err) => {
+      console.error("GLB load error", err);
+      loaderOverlay.classList.add("hidden");
     }
-
-    loaderOverlay.classList.add("hidden");
-    animate();
-  },
-  undefined,
-  (err) => {
-    console.error("GLB load error", err);
-    loaderOverlay.classList.add("hidden");
-  }
-);
-
+  );
+} // ← ALL FIXED NOW, closes initAvatar()
 
   // Talk-state hooks (you can call from script.js during audio)
   window.startTalking = function () {
