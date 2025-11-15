@@ -690,7 +690,7 @@ function initAvatar() {
   const height = avatarCanvas.clientHeight || avatarCanvas.offsetHeight || 400;
 
   camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-camera.position.set(0, 1.35, 0);
+camera.position.set(0, 1.35, 2);
 
   renderer = new THREE.WebGLRenderer({
     canvas: avatarCanvas,
@@ -724,7 +724,7 @@ camera.position.set(0, 1.35, 0);
       const model = gltf.scene;
 
       // Same scale as original working version
-      model.scale.set(36, 36, 36);
+      model.scale.set(16, 16, 16);
 
       // Center and ground model
       const box = new THREE.Box3().setFromObject(model);
@@ -734,7 +734,7 @@ camera.position.set(0, 1.35, 0);
       scene.add(model);
 
       // Camera framing
-      camera.position.set(0, 1.35, 0);
+      camera.position.set(0, 1.35, 2);
       camera.lookAt(0, 1.8, 0);
 
       // Animation — play first clip
