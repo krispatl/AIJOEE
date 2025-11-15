@@ -690,7 +690,7 @@ function initAvatar() {
   const height = avatarCanvas.clientHeight || avatarCanvas.offsetHeight || 400;
 
   camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-  camera.position.set(0, 1.2, 1);
+  camera.position.set(0, 1.65, 1);
 
   renderer = new THREE.WebGLRenderer({
     canvas: avatarCanvas,
@@ -734,7 +734,7 @@ function initAvatar() {
       scene.add(model);
 
       // Camera framing
-      camera.position.set(0, 1.35, 1);
+      camera.position.set(0, 1.25, 1);
       camera.lookAt(0, 1.35, 0);
 
       // Animation — play first clip
