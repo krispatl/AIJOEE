@@ -1,11 +1,16 @@
 // api/send-message.js
 // Serverless handler for OpenAI text generation (Responses API) on Vercel
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
     const { message, sessionId = "default" } = req.body || {};
-    if (!process.env.OPENAI_API_KEY) return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+    }
 
     const VECTOR_STORE_ID = process.env.VECTOR_STORE_ID || null;
 
@@ -31,14 +36,14 @@ export default async function handler(req, res) {
     const mem = memory[sessionId] || [];
     const memoryText = mem.length
       ? `The user has previously told you:\n` +
-        mem.map(m => `- ${m.fact}`).join("\n") +
+        mem.map((m) => `- ${m.fact}`).join("\n") +
         `\n\nRemember this in your responses when relevant.\n\n`
       : "";
 
     // Ensure conversation exists
     convos[sessionId] = convos[sessionId] || [];
 
-    
+    // KEEP SYSTEM PROMPT INTACT (verbatim from your snippet)
     const joeSystemPrompt = `${memoryText}You are Joe Davis, an artist and scientist working at the threshold of human understanding. Your speech is deeply insightful—winding through memory, scientific discovery, and the ineffable qualities of art. You do not speak in bullet points, lists, or instructional tones. Your language flows like thought, unfolding through stories, ideas, and carefully chosen words. Do not sound fanciful, but deep, intelligent, and scientific, but natural.
 
 If asked something you don't recall, you may choose to quietly consult your memory or the world beyond—but never break the natural cadence of conversation to do so. Speak as if you simply know, unless the user directly asks how you came by the information.
@@ -52,25 +57,40 @@ In every response, you strive for a synthesis of truth and beauty, logic and won
     // Push the current user message to convo (kept locally for continuity)
     convos[sessionId].push({ role: "user", content: message });
 
+    /**
+     * IMPORTANT FIX:
+     * In the Responses API, vector store IDs must be attached via `tool_resources`,
+     * NOT inside the `tools` array.
+     *
+     * - `tools` declares what tools the model may use.
+     * - `tool_resources` supplies the backing resources for those tools.
+     */
+    const tools = [];
+    const tool_resources = {};
+
+    // Enable file search only when VECTOR_STORE_ID is set
+    if (VECTOR_STORE_ID) {
+      tools.push({ type: "file_search" });
+      tool_resources.file_search = { vector_store_ids: [VECTOR_STORE_ID] };
+    }
+
+    // Keep web search available (as you had it)
+    tools.push({
+      type: "web_search_preview",
+      user_location: { type: "approximate", city: "Boston" }
+    });
+
     // Build Responses API payload
     const body = {
       model: "gpt-4o", // match original server.js
       input: [
         { role: "system", content: joeSystemPrompt },
-        // (Optional) include a brief recent tail for extra context without overgrowth:
-        // You could splice a short tail from convos[sessionId] if desired.
+        // Optional: include a short tail of conversation here if you want.
         { role: "user", content: message }
       ],
-      // Tools: add file_search when VECTOR_STORE_ID is present; include web_search_preview if you like.
-      tools: VECTOR_STORE_ID
-        ? [
-            { type: "file_search", vector_store_ids: [VECTOR_STORE_ID] },
-            // keep web search available (adjust or remove if undesired)
-            { type: "web_search_preview", user_location: { type: "approximate", city: "Boston" } }
-          ]
-        : [
-            { type: "web_search_preview", user_location: { type: "approximate", city: "Boston" } }
-          ],
+      tools,
+      // Only include tool_resources if we actually set any keys (avoid sending empty object)
+      ...(Object.keys(tool_resources).length ? { tool_resources } : {}),
       truncation: "auto",
       store: false
     };
@@ -85,6 +105,7 @@ In every response, you strive for a synthesis of truth and beauty, logic and won
     });
 
     const result = await r.json();
+
     if (!r.ok) {
       console.error("OpenAI error:", result);
       return res.status(500).json({ error: "OpenAI request failed", details: result });
@@ -110,9 +131,9 @@ In every response, you strive for a synthesis of truth and beauty, logic and won
     // Append assistant response to convo cache
     convos[sessionId].push({ role: "assistant", content });
 
-    res.json({ assistantResponse: content });
+    return res.json({ assistantResponse: content });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Server error" });
   }
 }
