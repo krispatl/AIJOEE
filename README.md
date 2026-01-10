@@ -1,5 +1,5 @@
 # AI JOE
-THe digital double of Joe Davis. 
+The digital double of Joe Davis. 
 
 
 ## Local Dev
